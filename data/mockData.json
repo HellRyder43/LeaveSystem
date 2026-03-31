@@ -1,0 +1,40 @@
+{
+  "currentUser": {
+    "id": "u1",
+    "name": "Alex Rivera",
+    "avatar": "https://picsum.photos/seed/alex/100/100",
+    "balances": {
+      "annual": { "used": 12, "total": 20 },
+      "sick": { "used": 2, "total": 10 },
+      "personal": { "used": 1, "total": 3 }
+    }
+  },
+  "teamMembers": [
+    { "id": "u1", "name": "Alex Rivera", "role": "Employee" },
+    { "id": "u2", "name": "Sarah Jenkins", "role": "Designer" },
+    { "id": "u3", "name": "Mike Ross", "role": "Developer" },
+    { "id": "u4", "name": "Emily Chen", "role": "Product Manager" },
+    { "id": "u5", "name": "David Kim", "role": "QA Engineer" }
+  ],
+  "leaveRequests": [
+    { "id": "r1", "userId": "u2", "memberName": "Sarah Jenkins", "avatar": "https://picsum.photos/seed/sarah/100/100", "type": "Annual Leave", "status": "Approved", "startDate": "2026-03-15", "endDate": "2026-03-22", "days": 5, "note": "Taking a family trip to Hawaii! Will ensure all my projects are handed over to Mike before I leave.", "color": { "bg": "bg-purple-100", "text": "text-purple-700", "border": "border-purple-300" } },
+    { "id": "r2", "userId": "u3", "memberName": "Mike Ross", "avatar": "https://picsum.photos/seed/mike/100/100", "type": "Sick Leave", "status": "Pending", "startDate": "2026-03-10", "endDate": "2026-03-11", "days": 2, "note": "Feeling under the weather today. Will check emails periodically if urgent.", "color": { "bg": "bg-pink-100", "text": "text-pink-700", "border": "border-pink-300" } },
+    { "id": "r3", "userId": "u4", "memberName": "Emily Chen", "avatar": "https://picsum.photos/seed/emily/100/100", "type": "Personal Day", "status": "Approved", "startDate": "2026-03-01", "endDate": "2026-03-01", "days": 1, "note": "Need to attend to some personal errands.", "color": { "bg": "bg-amber-100", "text": "text-amber-700", "border": "border-amber-300" } },
+    { "id": "r4", "userId": "u1", "memberName": "Alex Rivera", "avatar": "https://picsum.photos/seed/alex/100/100", "type": "Annual Leave", "status": "Approved", "startDate": "2026-03-28", "endDate": "2026-04-05", "days": 6, "note": "Spring break vacation.", "color": { "bg": "bg-blue-100", "text": "text-blue-700", "border": "border-blue-300" } },
+    { "id": "r5", "userId": "u2", "memberName": "Sarah Jenkins", "avatar": "https://picsum.photos/seed/sarah/100/100", "type": "Sick Leave", "status": "Pending", "startDate": "2026-04-12", "endDate": "2026-04-13", "days": 2, "note": "Doctor's appointment and rest.", "color": { "bg": "bg-pink-100", "text": "text-pink-700", "border": "border-pink-300" } },
+    { "id": "r6", "userId": "u4", "memberName": "Emily Chen", "avatar": "https://picsum.photos/seed/emily/100/100", "type": "Annual Leave", "status": "Approved", "startDate": "2026-04-20", "endDate": "2026-04-25", "days": 5, "note": "Attending a conference and taking a few days off.", "color": { "bg": "bg-purple-100", "text": "text-purple-700", "border": "border-purple-300" } },
+    { "id": "r7", "userId": "u5", "memberName": "David Kim", "avatar": "https://picsum.photos/seed/david/100/100", "type": "Personal Day", "status": "Pending", "startDate": "2026-03-18", "endDate": "2026-03-18", "days": 1, "note": "Moving to a new apartment.", "color": { "bg": "bg-amber-100", "text": "text-amber-700", "border": "border-amber-300" } },
+    { "id": "r8", "userId": "u1", "memberName": "Alex Rivera", "avatar": "https://picsum.photos/seed/alex/100/100", "type": "Sick Leave", "status": "Pending", "startDate": "2026-03-05", "endDate": "2026-03-05", "days": 1, "note": "Not feeling well.", "color": { "bg": "bg-pink-100", "text": "text-pink-700", "border": "border-pink-300" } },
+    { "id": "r9", "userId": "u3", "memberName": "Mike Ross", "avatar": "https://picsum.photos/seed/mike/100/100", "type": "Annual Leave", "status": "Rejected", "startDate": "2026-05-01", "endDate": "2026-05-10", "days": 6, "note": "Backpacking trip.", "color": { "bg": "bg-blue-100", "text": "text-blue-700", "border": "border-blue-300" } },
+    { "id": "r10", "userId": "u5", "memberName": "David Kim", "avatar": "https://picsum.photos/seed/david/100/100", "type": "Annual Leave", "status": "Approved", "startDate": "2026-06-15", "endDate": "2026-06-20", "days": 5, "note": "Summer vacation.", "color": { "bg": "bg-purple-100", "text": "text-purple-700", "border": "border-purple-300" } }
+  ],
+  "holidays": [
+    { "id": "h1", "date": "2026-01-01", "name": "New Year's Day" },
+    { "id": "h2", "date": "2026-03-15", "name": "Company Retreat" },
+    { "id": "h3", "date": "2026-05-25", "name": "Memorial Day" },
+    { "id": "h4", "date": "2026-07-04", "name": "Independence Day" },
+    { "id": "h5", "date": "2026-09-07", "name": "Labor Day" },
+    { "id": "h6", "date": "2026-11-26", "name": "Thanksgiving Day" },
+    { "id": "h7", "date": "2026-12-25", "name": "Christmas Day" }
+  ]
+}

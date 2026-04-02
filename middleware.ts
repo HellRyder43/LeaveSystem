@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthRoute =
     pathname === '/login' ||
-    pathname.startsWith('/reset-password') ||
+    pathname === '/reset-password' ||      // exact — /reset-password/update must stay accessible to authenticated users
     pathname.startsWith('/auth')
 
   // ── Unauthenticated ──────────────────────────────────────────────

@@ -14,7 +14,7 @@
 | 0 | Environment & Dependencies | ✅ Done |
 | 1 | Database Schema & RLS | ✅ Done |
 | 2 | Supabase Client Infrastructure | ✅ Done |
-| 3 | UC001 — Authentication | ⬜ Not Started |
+| 3 | UC001 — Authentication | ✅ Done |
 | 4 | Layout, Navigation & Session | ⬜ Not Started |
 | 5 | Balance & Entitlement Logic | ⬜ Not Started |
 | 6 | UC002 — Employee Dashboard | ⬜ Not Started |
@@ -155,22 +155,28 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Screens:** UI-001 (Login), UI-002 (Password Reset)
 
-### Files to Create
+### Files Created
 
-- [ ] `app/(auth)/layout.tsx` — centered card layout for auth pages
-- [ ] `app/(auth)/login/page.tsx`
-  - Email + password fields
-  - "Remember me" checkbox
+- [x] `app/(auth)/layout.tsx` — two-column auth layout: branded left panel (desktop) + form right
+- [x] `app/(auth)/login/page.tsx`
+  - Email + password fields with show/hide toggle
+  - "Keep me signed in" checkbox
   - "Forgot password?" link
+  - Error banners for wrong credentials and deactivated account
   - Role-based redirect on success: Employee → `/dashboard`, Manager → `/manager`, Admin → `/admin`
-- [ ] `app/(auth)/reset-password/page.tsx`
+- [x] `app/(auth)/reset-password/page.tsx`
   - Email input → triggers Supabase password reset email
-  - Token-based reset flow (Supabase handles the link)
-- [ ] `lib/actions/auth.ts`
-  - `signIn(email, password)` — Supabase `signInWithPassword`
-  - `signOut()` — Supabase `signOut`
-  - `sendPasswordReset(email)` — Supabase `resetPasswordForEmail`
-  - `updatePassword(newPassword)` — for the reset callback
+  - Success confirmation screen replaces the form
+- [x] `app/(auth)/reset-password/update/page.tsx`
+  - New password + confirm fields with show/hide toggles
+  - Redirects to `/login?message=password_updated` on success
+- [x] `app/auth/callback/route.ts` — exchanges Supabase code for session; redirects to `next` param
+- [x] `lib/actions/auth.ts`
+  - `signIn(prevState, formData)` — Supabase `signInWithPassword`, role-based redirect
+  - `signOut()` — Supabase `signOut` → `/login`
+  - `sendPasswordReset(prevState, formData)` — Supabase `resetPasswordForEmail`; email enumeration safe
+  - `updatePassword(prevState, formData)` — Supabase `updateUser({ password })`
+- [x] `middleware.ts` updated — `isAuthRoute` changed to exact match on `/reset-password` so `/reset-password/update` is accessible to authenticated users (recovery session)
 
 ### Business Rules
 - New employees land directly on the dashboard on first login — no special onboarding screen
@@ -568,6 +574,7 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 | 2026-04-02 | `cd78cf7` | feat(setup): Phase 0 — environment and dependencies |
 | 2026-04-03 | `fcf6be3` | feat(db): Phase 1 — database schema, RLS policies, seed data |
 | 2026-04-03 | — | feat(infra): Phase 2 — Supabase clients, TypeScript types, middleware |
+| 2026-04-03 | — | feat(auth): Phase 3 — UC001 authentication, login, password reset |
 
 ---
 

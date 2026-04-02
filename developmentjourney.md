@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-04-02
+> **Last Updated:** 2026-04-03
 
 ---
 
@@ -12,7 +12,7 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Environment & Dependencies | ✅ Done |
-| 1 | Database Schema & RLS | ⬜ Not Started |
+| 1 | Database Schema & RLS | ✅ Done |
 | 2 | Supabase Client Infrastructure | ⬜ Not Started |
 | 3 | UC001 — Authentication | ⬜ Not Started |
 | 4 | Layout, Navigation & Session | ⬜ Not Started |
@@ -76,51 +76,58 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ### 1.1 Enums
 
-- [ ] `user_role` → `Employee`, `Manager`, `Admin`
-- [ ] `leave_status` → `Pending`, `Approved`, `Rejected`, `Cancelled`
-- [ ] `duration_modifier_enum` → `Full`, `First Half`, `Second Half`
-- [ ] `gender_restriction_enum` → `None`, `Male`, `Female`
-- [ ] `notification_type_enum` → `LeaveSubmitted`, `LeaveApproved`, `LeaveRejected`, `LeaveCancelled`, `ApprovalReminder`, `EscalationAlert`, `DelegateAssigned`, `YearEndSummary`
-- [ ] `encashment_trigger_enum` → `System`, `Admin`
+- [x] `user_role` → `Employee`, `Manager`, `Admin`
+- [x] `leave_status` → `Pending`, `Approved`, `Rejected`, `Cancelled`
+- [x] `duration_modifier_enum` → `Full`, `First Half`, `Second Half`
+- [x] `gender_restriction_enum` → `None`, `Male`, `Female`
+- [x] `notification_type_enum` → `LeaveSubmitted`, `LeaveApproved`, `LeaveRejected`, `LeaveCancelled`, `ApprovalReminder`, `EscalationAlert`, `DelegateAssigned`, `YearEndSummary`
+- [x] `encashment_trigger_enum` → `System`, `Admin`
 
 ### 1.2 Tables (in dependency order)
 
-- [ ] **`departments`** — `id`, `name`, `manager_id` (FK → users, nullable during reassignment), `acting_manager_id` (FK → users, nullable)
-- [ ] **`users`** — `id` (FK → auth.users), `email`, `full_name`, `role`, `department_id` (FK → departments), `join_date`, `is_active`, `created_at`, `updated_at`
-- [ ] **`leave_type_configs`** — `id`, `name`, `default_quota`, `allow_half_day`, `is_carry_forward_allowed`, `max_carry_forward_days`, `requires_attachment`, `attachment_required_after_days`, `gender_restriction`, `is_paid`, `is_active`
-- [ ] **`public_holidays`** — `id`, `date`, `name`, `department_id` (nullable = global)
-- [ ] **`system_settings`** — single-row: `approval_sla_days` (5), `backdated_leave_window_days` (7), `carry_forward_expiry_month` (3), `encashment_enabled` (false), `leave_year_start_month` (1)
-- [ ] **`leave_balances`** — `id`, `user_id`, `leave_type_id`, `year`, `allocated`, `used`, `carried_forward`, `carried_forward_expiry`, `encashed`
-- [ ] **`leave_requests`** — `id`, `user_id`, `leave_type_id`, `start_date`, `end_date`, `duration_days`, `duration_modifier`, `reason`, `status`, `approver_id`, `approver_comment`, `attachment_url`, `covering_employee_id`, `delegate_approver_id`, `is_backdated`, `is_cross_year`, `escalated_at`, `created_at`, `updated_at`
-- [ ] **`notifications`** — `id`, `user_id`, `type`, `title`, `body`, `related_request_id`, `is_read`, `created_at`
-- [ ] **`audit_log`** — `id`, `actor_id`, `action`, `target_table`, `target_id`, `before_state`, `after_state`, `reason`, `created_at`
-- [ ] **`leave_encashment_log`** — `id`, `user_id`, `leave_type_id`, `year`, `days_encashed`, `triggered_by`, `created_at`
+- [x] **`departments`** — `id`, `name`, `manager_id` (FK → users, nullable during reassignment), `acting_manager_id` (FK → users, nullable)
+- [x] **`users`** — `id` (FK → auth.users), `email`, `full_name`, `role`, `department_id` (FK → departments), `join_date`, `is_active`, `created_at`, `updated_at`
+- [x] **`leave_type_configs`** — `id`, `name`, `default_quota`, `allow_half_day`, `is_carry_forward_allowed`, `max_carry_forward_days`, `requires_attachment`, `attachment_required_after_days`, `gender_restriction`, `is_paid`, `is_active`
+- [x] **`public_holidays`** — `id`, `date`, `name`, `department_id` (nullable = global)
+- [x] **`system_settings`** — single-row: `approval_sla_days` (5), `backdated_leave_window_days` (7), `carry_forward_expiry_month` (3), `encashment_enabled` (false), `leave_year_start_month` (1)
+- [x] **`leave_balances`** — `id`, `user_id`, `leave_type_id`, `year`, `allocated`, `used`, `carried_forward`, `carried_forward_expiry`, `encashed`
+- [x] **`leave_requests`** — `id`, `user_id`, `leave_type_id`, `start_date`, `end_date`, `duration_days`, `duration_modifier`, `reason`, `status`, `approver_id`, `approver_comment`, `attachment_url`, `covering_employee_id`, `delegate_approver_id`, `is_backdated`, `is_cross_year`, `escalated_at`, `created_at`, `updated_at`
+- [x] **`notifications`** — `id`, `user_id`, `type`, `title`, `body`, `related_request_id`, `is_read`, `created_at`
+- [x] **`audit_log`** — `id`, `actor_id`, `action`, `target_table`, `target_id`, `before_state`, `after_state`, `reason`, `created_at`
+- [x] **`leave_encashment_log`** — `id`, `user_id`, `leave_type_id`, `year`, `days_encashed`, `triggered_by`, `created_at`
 
 ### 1.3 Critical Index
 
-- [ ] **Unique composite index** on `leave_balances(user_id, leave_type_id, year)` — prevents duplicate balance rows
+- [x] **Unique composite index** on `leave_balances(user_id, leave_type_id, year)` — via `UNIQUE` constraint (prevents duplicate balance rows)
 
 ### 1.4 RLS Policies
 
-- [ ] `leave_requests` — users SELECT/INSERT own; managers SELECT/UPDATE by department; admins full access
-- [ ] `leave_balances` — users SELECT own; managers SELECT their department; admins SELECT/UPDATE all
-- [ ] `notifications` — users SELECT/UPDATE own only
-- [ ] `audit_log` — admins SELECT only; service role INSERT only (no direct role writes)
-- [ ] `leave_type_configs` — all roles SELECT; admin INSERT/UPDATE/DELETE
-- [ ] `users` — users SELECT own + same-department colleagues (name + email only); admins full access
-- [ ] `system_settings` — all roles SELECT; admin UPDATE only
-- [ ] `public_holidays` — all roles SELECT; admin INSERT/UPDATE/DELETE
-- [ ] `departments` — all roles SELECT; admin INSERT/UPDATE
+- [x] `leave_requests` — users SELECT/INSERT own; managers SELECT/UPDATE by department; admins full access
+- [x] `leave_balances` — users SELECT own; managers SELECT their department; admins SELECT/UPDATE all
+- [x] `notifications` — users SELECT/UPDATE own only
+- [x] `audit_log` — admins SELECT only; service role INSERT only (no direct role writes)
+- [x] `leave_type_configs` — all roles SELECT; admin INSERT/UPDATE/DELETE
+- [x] `users` — users SELECT own + same-department colleagues (name + email only); admins full access
+- [x] `system_settings` — all roles SELECT; admin UPDATE only
+- [x] `public_holidays` — all roles SELECT; admin INSERT/UPDATE/DELETE
+- [x] `departments` — all roles SELECT; admin INSERT/UPDATE
+- [x] Helper functions: `get_user_role()`, `get_user_department_id()` — SECURITY DEFINER to avoid RLS recursion
 
 ### 1.5 Seed Data
 
-- [ ] Default leave types: Annual (16d, half-day ✓, carry-forward ✓), Sick (14d, MC after 1d), Unpaid (unpaid), Compassionate (3d), Maternity (60d, female), Paternity (7d, male), Marriage (3d), Hajj (10d)
-- [ ] Default `system_settings` row (single row insert)
+- [x] Default leave types: Annual (16d, half-day ✓, carry-forward ✓), Sick (14d, MC after 1d), Unpaid (unpaid), Compassionate (3d), Maternity (60d, female), Paternity (7d, male), Marriage (3d), Hajj (10d)
+- [x] Default `system_settings` row (single row insert)
 
 ### 1.6 Supabase Storage
 
 - [ ] Create bucket `medical-certificates`
 - [ ] RLS: uploader, their manager, and Admin can access
+
+### Notes
+
+- Circular FK between `departments` and `users` resolved by creating `departments` first without the FK, then adding it via `ALTER TABLE` after `users` exists
+- `audit_log.actor_id` is nullable (`ON DELETE SET NULL`) to preserve log history if the actor user is deleted
+- Migration file: `supabase/migrations/20260403000000_phase1_schema.sql`
 
 ---
 
@@ -557,7 +564,8 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 |------|--------|-------------|
 | — | `aa254cf` | Initial commit |
 | — | `fc585f9` | feat: Setup base project structure and dependencies |
-| 2026-04-02 | — | Phase 0: Install all deps, configure shadcn/ui for Tailwind v4, fix next.config.ts |
+| 2026-04-02 | `cd78cf7` | feat(setup): Phase 0 — environment and dependencies |
+| 2026-04-03 | — | feat(db): Phase 1 — database schema, RLS policies, seed data |
 
 ---
 

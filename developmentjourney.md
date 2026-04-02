@@ -13,7 +13,7 @@
 |-------|-------------|--------|
 | 0 | Environment & Dependencies | ✅ Done |
 | 1 | Database Schema & RLS | ✅ Done |
-| 2 | Supabase Client Infrastructure | ⬜ Not Started |
+| 2 | Supabase Client Infrastructure | ✅ Done |
 | 3 | UC001 — Authentication | ⬜ Not Started |
 | 4 | Layout, Navigation & Session | ⬜ Not Started |
 | 5 | Balance & Entitlement Logic | ⬜ Not Started |
@@ -137,16 +137,17 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ### Files to Create
 
-- [ ] `lib/supabase/client.ts` — `createBrowserClient()` for client components
-- [ ] `lib/supabase/server.ts` — `createServerClient()` with Next.js cookies for server components & actions
-- [ ] `lib/supabase/service.ts` — `createClient(SERVICE_ROLE_KEY)` for audit log and admin ops only
-- [ ] `lib/types/database.ts` — TypeScript types generated via `supabase gen types typescript`
-- [ ] `lib/types/app.ts` — domain types (User, LeaveRequest, LeaveBalance, Notification, etc.)
-- [ ] `middleware.ts` — session refresh + route protection:
+- [x] `lib/supabase/client.ts` — `createBrowserClient()` for client components
+- [x] `lib/supabase/server.ts` — `createServerClient()` with Next.js cookies for server components & actions
+- [x] `lib/supabase/service.ts` — `createClient(SERVICE_ROLE_KEY)` for audit log and admin ops only
+- [x] `lib/types/database.ts` — TypeScript types generated via Supabase MCP `generate_typescript_types`
+- [x] `lib/types/app.ts` — domain types (User, LeaveRequest, LeaveBalance, Notification, etc.) + form data types + ActionResult
+- [x] `middleware.ts` — session refresh + route protection:
   - Redirect unauthenticated users to `/login`
-  - Block deactivated users (`is_active = false`) even with valid session
+  - Block deactivated users (`is_active = false`) — redirected to `/login?error=deactivated`, allowed to stay on auth routes to sign out
   - Protect `/admin/*` routes (Admin only)
   - Protect `/manager/*` routes (Manager + Admin)
+  - Authenticated users on auth routes redirected to their role's home page
 
 ---
 
@@ -565,7 +566,8 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 | — | `aa254cf` | Initial commit |
 | — | `fc585f9` | feat: Setup base project structure and dependencies |
 | 2026-04-02 | `cd78cf7` | feat(setup): Phase 0 — environment and dependencies |
-| 2026-04-03 | — | feat(db): Phase 1 — database schema, RLS policies, seed data |
+| 2026-04-03 | `fcf6be3` | feat(db): Phase 1 — database schema, RLS policies, seed data |
+| 2026-04-03 | — | feat(infra): Phase 2 — Supabase clients, TypeScript types, middleware |
 
 ---
 

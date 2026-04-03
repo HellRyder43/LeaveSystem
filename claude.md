@@ -701,3 +701,4 @@ mcp__playwright__browser_console_messages
 - `resolveApprover()` must always return a valid user ID — fallback to Admin if no manager is found
 - The `leave_balances` unique composite index on `(user_id, leave_type_id, year)` must be created in the initial migration — never allow duplicate balance rows
 - Maintain progress status in developmentjourney.md
+- Use seeddata.md for login credentials.

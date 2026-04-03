@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-04-03
+> **Last Updated:** 2026-04-04
 
 ---
 
@@ -16,8 +16,8 @@
 | 2 | Supabase Client Infrastructure | ✅ Done |
 | 3 | UC001 — Authentication | ✅ Done |
 | 4 | Layout, Navigation & Session | ✅ Done |
-| 5 | Balance & Entitlement Logic | ⬜ Not Started |
-| 6 | UC002 — Employee Dashboard | ⬜ Not Started |
+| 5 | Balance & Entitlement Logic | ✅ Done |
+| 6 | UC002 — Employee Dashboard | ✅ Done |
 | 7 | UC003 — Leave Application | ⬜ Not Started |
 | 8 | UC004 — Team Calendar | ⬜ Not Started |
 | 9 | UC005 — Approvals Dashboard | ⬜ Not Started |
@@ -220,28 +220,32 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Goal:** Core calculation utilities used by every leave action.
 
-### Files to Create
+### Files Created
 
-- [ ] `lib/utils/dates.ts`
+- [x] `lib/utils/dates.ts`
   - `toKLDate(date)` — convert any date to Asia/Kuala_Lumpur date string
   - `getKLToday()` — today's date in KL timezone
+  - `getKLTodayDate()` — today as a Date object in KL timezone
   - `isWeekend(date)` — true if Saturday or Sunday
   - `getLeaveYear(date, leaveYearStartMonth)` — which leave year a date belongs to
   - `countCalendarDays(start, end)` — inclusive count
-  - `addWorkingDays(date, n)` — skip weekends + holidays
+  - `addWorkingDays(date, n, holidays?)` — skip weekends + holidays
+  - `subtractWorkingDays(date, n, holidays?)` — for cancellation window checks
+  - `parseDate(dateStr)` / `formatDate(date)` — UTC midnight helpers
 
-- [ ] `lib/utils/working-days.ts`
-  - `countWorkingDays(start, end, holidays[])` — exclude weekends + public holidays
-  - `getWorkingDaysBetween(start, end, departmentId?)` — fetches holidays from DB
+- [x] `lib/utils/working-days.ts`
+  - `countWorkingDays(start, end, holidays[])` — exclude weekends + public holidays (pure, no DB)
+  - `getWorkingDaysBetween(start, end, departmentId?)` — fetches holidays from DB, returns `{ workingDays, holidays, calendarDays }`
+  - `workingDaysSince(dateStr, holidays?)` — SLA age calculation
 
-- [ ] `lib/actions/balance.ts`
-  - `getLeaveBalance(userId, year)` → `{ allocated, used, carried_forward, effective_balance, pending_in_flight }`
-    - Formula: `effective = allocated + carried_forward - used - pending_in_flight`
-  - `prorateNewHireBalance(userId)` → `floor((remaining_months / 12) * entitlement)`, min 1 day
-  - `recalculateEntitlement(userId)` → re-evaluate service tier from `join_date`
-  - `adjustLeaveBalance(userId, leaveTypeId, year, delta, reason)` → Admin only, writes audit log
-  - `processYearEndCarryForward()` → cron target
-  - `expireCarriedForwardBalances()` → cron target
+- [x] `lib/actions/balance.ts`
+  - `getLeaveBalance(userId, year)` → enriched `EffectiveLeaveBalance[]` with `pending_in_flight` and `effective_balance`
+  - `prorateNewHireBalance(userId)` → `floor((remaining_months / 12) * entitlement)`, min 1 day; upserts all leave types
+  - `recalculateEntitlement(userId)` → re-evaluate service tier; upserts next year's annual leave balance
+  - `adjustLeaveBalance(actorId, userId, leaveTypeId, year, delta, reason)` → Admin only; adjusts `allocated`; writes audit log
+  - `processYearEndCarryForward()` → cron target; respects `max_carry_forward_days`; sets `carried_forward_expiry`
+  - `expireCarriedForwardBalances()` → cron target; zeroes out expired `carried_forward` rows
+  - `writeAuditLog(...)` → service role client; non-blocking; used by all mutating actions
 
 ### Entitlement Tiers (default, configurable)
 | Service Length | Annual Leave |
@@ -258,22 +262,25 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ### Files to Create/Modify
 
-- [ ] `app/(app)/dashboard/page.tsx` — server component fetching real data
-- [ ] `components/dashboard/BalanceCard.tsx`
+- [x] `app/(app)/dashboard/page.tsx` — server component fetching real data
+- [x] `components/dashboard/BalanceCard.tsx`
   - Metric cards per leave type: allocated, used, remaining
   - Visual progress bar
   - Carry-forward indicator where applicable
-- [ ] `components/dashboard/RecentLeavesSnapshot.tsx` — last 3–5 requests with status badges
-- [ ] `components/dashboard/WhoIsOutWidget.tsx` — department colleagues on approved leave today (names + dates only)
-- [ ] `app/(app)/leaves/page.tsx` — UI-004: leave history page
-- [ ] `components/leaves/LeaveHistoryTable.tsx`
+- [x] `components/dashboard/RecentLeavesSnapshot.tsx` — last 3–5 requests with status badges
+- [x] `components/dashboard/WhoIsOutWidget.tsx` — department colleagues on approved leave today (names + dates only)
+- [x] `app/(app)/leaves/page.tsx` — UI-004: leave history page
+- [x] `components/leaves/LeaveHistoryTable.tsx`
   - Columns: Type, Dates, Duration, Status, Manager Comment
   - Filters: year, status
   - Pagination
   - "Cancel" button on Pending requests
   - "Cancel Leave" button on future Approved (within 1 working day window)
-- [ ] `lib/actions/leave.ts`
+- [x] `lib/actions/leave.ts`
   - `getUserLeaveHistory(userId, filters)` — paginated query
+  - `cancelLeaveRequest(requestId)` — Pending only, no balance change
+  - `cancelApprovedLeave(requestId)` — validates 1-working-day window; restores `leave_balances.used`; cross-year restores both years
+- [x] `lib/actions/reports.ts` — `getWhoIsOutToday(departmentId?)` (partial — full page in Phase 11)
 
 ### Status Colors
 | Status | Color |
@@ -588,6 +595,8 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 | 2026-04-03 | — | feat(infra): Phase 2 — Supabase clients, TypeScript types, middleware |
 | 2026-04-03 | — | feat(auth): Phase 3 — UC001 authentication, login, password reset |
 | 2026-04-03 | — | feat(layout): Phase 4 — layout, sidebar navigation, session context |
+| 2026-04-04 | — | feat(dashboard): Phase 5 — balance & entitlement logic |
+| 2026-04-04 | — | feat(dashboard): Phase 6 — UC002 employee dashboard, leave history |
 
 ---
 

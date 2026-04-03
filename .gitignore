@@ -1,3 +1,4 @@
+.mcp.json
 node_modules/
 .next/
 coverage/
@@ -5,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Playwright MCP screenshots
+.playwright-mcp/

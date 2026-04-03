@@ -1,6 +1,6 @@
 'use client';
 
-import { Tab } from '@/app/page';
+type Tab = 'Dashboard' | 'Team Calendar' | 'Approvals' | 'Settings';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plane, HeartPulse, Coffee, Plus, Calendar as CalendarIcon, Clock, X, Check, ChevronRight } from 'lucide-react';
 import { useState } from 'react';

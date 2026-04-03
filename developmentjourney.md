@@ -15,7 +15,7 @@
 | 1 | Database Schema & RLS | ✅ Done |
 | 2 | Supabase Client Infrastructure | ✅ Done |
 | 3 | UC001 — Authentication | ✅ Done |
-| 4 | Layout, Navigation & Session | ⬜ Not Started |
+| 4 | Layout, Navigation & Session | ✅ Done |
 | 5 | Balance & Entitlement Logic | ⬜ Not Started |
 | 6 | UC002 — Employee Dashboard | ⬜ Not Started |
 | 7 | UC003 — Leave Application | ⬜ Not Started |
@@ -187,20 +187,32 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Goal:** Replace the mock role switcher with real session data; implement the full side navigation.
 
-### Files to Create/Modify
+### Files Created/Modified
 
-- [ ] `components/providers/SessionProvider.tsx` — React context exposing `user`, `role`, `departmentId`
-- [ ] `app/(app)/layout.tsx` — authenticated wrapper with `<Sidebar>` + `<SessionProvider>`
-- [ ] `components/Sidebar.tsx` — role-aware side navigation:
+- [x] `components/providers/SessionProvider.tsx` — React context + `useSession()` hook exposing `SessionUser`
+- [x] `components/layout/AppShell.tsx` — client wrapper managing mobile sidebar toggle state
+- [x] `app/(app)/layout.tsx` — authenticated server layout: fetches session → `SessionProvider` → `AppShell`
+- [x] `components/Sidebar.tsx` — fixed desktop sidebar + mobile drawer overlay; role-aware nav sections:
   ```
   Dashboard · My Leaves · Team Calendar · Who's Out Today · Notifications
-  [Manager] Team Approvals
+  [Manager+Admin] Team Approvals
   [Admin] Manage Employees · Leave Types · Holiday Calendar · Leave Policies · Reports · Audit Log
   ```
-- [ ] `app/(app)/dashboard/page.tsx` — Employee dashboard route
-- [ ] `app/(app)/manager/page.tsx` — Manager dashboard route
-- [ ] `app/(app)/admin/page.tsx` — Admin dashboard route
-- [ ] Update `components/Navbar.tsx` — show real user name/role from session, remove mock switcher
+  Active route highlighted; user profile + Sign Out at bottom
+- [x] `app/(app)/dashboard/page.tsx` — Employee dashboard placeholder (Phase 6)
+- [x] `app/(app)/manager/page.tsx` — Manager dashboard placeholder with quick links (Phase 9)
+- [x] `app/(app)/admin/page.tsx` — Admin dashboard placeholder with section cards (Phase 12)
+- [x] `components/Navbar.tsx` — real user name/role from `useSession()`; notification bell placeholder; hamburger for mobile
+- [x] `app/page.tsx` — replaced mock page with `redirect('/dashboard')`
+- [x] Fixed `app/(auth)/login/page.tsx` — wrapped `useSearchParams()` in `<Suspense>` (Next.js requirement)
+- [x] Fixed `components/EmployeeDashboard.tsx`, `ManagerDashboard.tsx`, `AdminDashboard.tsx` — replaced broken `import { Tab } from '@/app/page'` with inline type
+
+### Notes
+
+- `SessionProvider` is initialized in the server layout and passed to client components via React context
+- `AppShell` (client) holds mobile sidebar open/close state; children remain server-rendered (slot pattern)
+- Sidebar uses `usePathname()` for active route highlighting; `form action={signOut}` for sign out
+- Middleware provides primary route protection; `(app)/layout.tsx` adds a secondary session check
 
 ---
 
@@ -575,6 +587,7 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 | 2026-04-03 | `fcf6be3` | feat(db): Phase 1 — database schema, RLS policies, seed data |
 | 2026-04-03 | — | feat(infra): Phase 2 — Supabase clients, TypeScript types, middleware |
 | 2026-04-03 | — | feat(auth): Phase 3 — UC001 authentication, login, password reset |
+| 2026-04-03 | — | feat(layout): Phase 4 — layout, sidebar navigation, session context |
 
 ---
 

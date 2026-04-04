@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-04-04 (Phase 8 complete)
+> **Last Updated:** 2026-04-04 (Phase 9 complete)
 
 ---
 
@@ -20,7 +20,7 @@
 | 6 | UC002 — Employee Dashboard | ✅ Done |
 | 7 | UC003 — Leave Application | ✅ Done |
 | 8 | UC004 — Team Calendar | ✅ Done |
-| 9 | UC005 — Approvals Dashboard | ⬜ Not Started |
+| 9 | UC005 — Approvals Dashboard | ✅ Done |
 | 10 | UC007 — Notifications | ⬜ Not Started |
 | 11 | UC008 — Who's Out Today | ⬜ Not Started |
 | 12 | UC006 — Admin Configuration | ⬜ Not Started |
@@ -383,28 +383,31 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Screen:** UI-007 (Pending Approvals)
 
-### Files to Create
+### Files Created
 
-- [ ] `app/(app)/manager/approvals/page.tsx`
-- [ ] `components/approvals/ApprovalQueue.tsx` — inbox-style list
-- [ ] `components/approvals/ApprovalCard.tsx`
-  - Employee name, leave type, dates, total days, reason, attachment link
-  - Overlapping department leaves for context
-  - SLA countdown badge: green (> 3 days), amber (2–3 days), red (< 2 days)
-  - "Manager Leave" badge for Manager requests in Admin queue
-  - Approve / Reject buttons
-- [ ] `components/approvals/RejectDialog.tsx` — Dialog with mandatory comment field
-- [ ] `components/approvals/BulkApproveDialog.tsx` — AlertDialog, checks for conflicts
-- [ ] `lib/actions/approvals.ts`
-  - `approveLeaveRequest(requestId, comment?)` — updates status, deducts `leave_balances.used`, notifies employee, writes audit log
-  - `rejectLeaveRequest(requestId, comment)` — mandatory comment, notifies employee, writes audit log
-  - `bulkApproveLeaveRequests(requestIds[])` — validates no conflicts, approves all, notifies all
-  - `escalateLeaveRequest(requestId)` — Admin only; sets `escalated_at`
+- [x] `lib/actions/approvals.ts`
+  - `getPendingApprovals(userId, userRole)` — Manager sees `approver_id = self`; Admin sees all pending; enriches each request with `sla_days_elapsed` (via `workingDaysSince`) and `overlapping_leaves` (batch-fetched per dept)
+  - `approveLeaveRequest(requestId, comment?)` — auth check (assigned approver or Admin); updates status; deducts `leave_balances.used` for paid leave (cross-year aware — mirrors `cancelApprovedLeave` logic in reverse); non-blocking `LeaveApproved` notification; writes audit log
+  - `rejectLeaveRequest(requestId, comment)` — mandatory non-empty comment; no balance change; `LeaveRejected` notification; audit log
+  - `bulkApproveLeaveRequests(requestIds[])` — approves each sequentially; returns `{ approved[], failed[] }` for partial failure reporting
+  - `escalateLeaveRequest(requestId)` — Admin only; sets `escalated_at`; notifies Admin + original approver
+  - `getAttachmentSignedUrl(requestId)` — returns 5-min signed URL for MC bucket; auth-gated to approver/Admin
+- [x] `components/approvals/RejectDialog.tsx` — Dialog with mandatory textarea; disabled submit when blank
+- [x] `components/approvals/BulkApproveDialog.tsx` — AlertDialog listing selected requests; shows name/type/dates/duration; returns `{ approved, failed }` to parent
+- [x] `components/approvals/ApprovalCard.tsx`
+  - Employee avatar + name, leave type, dates, duration (with half-day label), reason block
+  - Backdated / Cross-year / Manager Leave badges
+  - Attachment: "View Medical Certificate" button → calls `getAttachmentSignedUrl`, opens tab
+  - Overlapping colleagues: collapsible list with amber warning
+  - SLA badge: emerald (> 3 days), amber (2–3 days), rose (< 2 days or overdue), orange (escalated)
+  - Approve (emerald) + Reject (rose outline) action buttons
+- [x] `components/approvals/ApprovalQueue.tsx` — client state manager; search by name/type; select-all checkbox; per-card checkbox; "Approve N" bulk button; stats strip (pending / overdue / escalated counts); empty state
+- [x] `app/(app)/manager/approvals/page.tsx` — server component; role-gates (Manager/Admin only, redirects others); fetches queue + SLA limit; renders `ApprovalQueue`
 
 ### SLA Rules
-- Day 3 (KL time): approver gets reminder notification
-- Day 5 (KL time): Admin gets escalation alert; `escalated_at` set on request
-- Admin can approve/reject/reassign escalated requests
+- `sla_days_elapsed` computed via `workingDaysSince(created_at)` (weekends excluded, holidays approximated)
+- Badge thresholds: > 3 days remaining → emerald; 2–3 days → amber; < 2 days → rose; escalated → orange
+- `escalateLeaveRequest` available Admin-only via separate action (cron SLA jobs handled in Phase 13)
 
 ---
 

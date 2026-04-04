@@ -18,7 +18,7 @@
 | 4 | Layout, Navigation & Session | ✅ Done |
 | 5 | Balance & Entitlement Logic | ✅ Done |
 | 6 | UC002 — Employee Dashboard | ✅ Done |
-| 7 | UC003 — Leave Application | ⬜ Not Started |
+| 7 | UC003 — Leave Application | ✅ Done |
 | 8 | UC004 — Team Calendar | ⬜ Not Started |
 | 9 | UC005 — Approvals Dashboard | ⬜ Not Started |
 | 10 | UC007 — Notifications | ⬜ Not Started |
@@ -299,9 +299,9 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ### Files to Create
 
-- [ ] `app/(app)/leaves/apply/page.tsx` — hosts the form
-- [ ] `lib/schemas/leave.ts` — Zod validation schemas
-- [ ] `components/leaves/RequestLeaveForm.tsx` — full form:
+- [x] `app/(app)/leaves/apply/page.tsx` — hosts the form
+- [x] `lib/schemas/leave.ts` — Zod validation schemas
+- [x] `components/leaves/RequestLeaveForm.tsx` — full form:
   - Leave type selector (fetched from `leave_type_configs` where `is_active = true`)
   - Date range picker — highlights public holidays, blocks weekends
   - Duration modifier dropdown — hides `First Half`/`Second Half` if `allow_half_day = false`
@@ -313,24 +313,30 @@ The project was scaffolded with a frontend-only prototype. These files exist but
   - Cross-year preview: "X days from 2025, Y days from 2026"
   - Public holiday info: "N working days (M calendar days — X holidays excluded)"
   - Team conflict warning — overlapping approved leaves from same department
-- [ ] `lib/actions/leave.ts` additions:
-  - `applyForLeave(data: LeaveRequestFormData)`
+- [x] `lib/actions/leave.ts` additions:
+  - `applyForLeave(formData: FormData)`
     - Validation pipeline (in order):
       1. Fetch leave type config
       2. If `is_paid = false` → skip balance check
-      3. Check effective balance (cross-year split if `is_cross_year`)
-      4. Validate backdated window vs `getKLToday()` (server-side, not just UI)
-      5. Check MC requirement (sick ≥ 2 days)
-      6. Upload MC to `medical-certificates` bucket if provided
-      7. `resolveApprover(userId)` → set `approver_id`
-      8. INSERT `leave_requests`
-      9. `sendNotification(approverId, 'LeaveSubmitted', requestId)` — non-blocking
-      10. `writeAuditLog(...)` — mandatory
+      3. Validate backdated window vs `getKLToday()` (server-side, not just UI)
+      4. Half-day validation (allow_half_day, single-day check, one per day)
+      5. Calculate duration via `getWorkingDaysBetween`
+      6. Check effective balance (cross-year split if `is_cross_year`)
+      7. Check MC requirement (sick ≥ attachment_required_after_days)
+      8. Upload MC to `medical-certificates` bucket if provided
+      9. `resolveApprover(userId)` → set `approver_id`
+      10. INSERT `leave_requests`
+      11. `sendNotification(approverId, 'LeaveSubmitted', requestId)` — non-blocking
+      12. `writeAuditLog(...)` — mandatory
     - Returns `{ success, error?, data? }`
-  - `cancelLeaveRequest(requestId)` — Pending only, no balance change
-  - `cancelApprovedLeave(requestId)` — validates 1-working-day window; restores `leave_balances.used`; cross-year restores both years atomically
-- [ ] `lib/utils/routing.ts`
+  - `getTeamConflictsForDates(departmentId, startDate, endDate)` — overlapping approved dept leaves
+  - `getCoveringEmployeeConflict(employeeId, startDate, endDate)` — covering employee leave conflict
+- [x] `lib/utils/routing.ts`
   - `resolveApprover(userId)` → `acting_manager_id` → `manager_id` (if active) → Admin fallback
+- [x] `lib/actions/notifications.ts`
+  - `sendNotification(userId, type, relatedRequestId?)` — non-blocking INSERT via service client
+  - `markNotificationRead(notificationId)`
+  - `markAllNotificationsRead(userId)`
 
 ### Key Business Rules
 - Balance check: `effective = allocated + carried_forward - used - pending_in_flight`
@@ -597,6 +603,7 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 | 2026-04-03 | — | feat(layout): Phase 4 — layout, sidebar navigation, session context |
 | 2026-04-04 | — | feat(dashboard): Phase 5 — balance & entitlement logic |
 | 2026-04-04 | — | feat(dashboard): Phase 6 — UC002 employee dashboard, leave history |
+| 2026-04-04 | — | feat(leave): Phase 7 — UC003 leave application form, applyForLeave action, notifications |
 
 ---
 

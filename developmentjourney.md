@@ -120,8 +120,9 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ### 1.6 Supabase Storage
 
-- [ ] Create bucket `medical-certificates`
-- [ ] RLS: uploader, their manager, and Admin can access
+- [x] Create bucket `medical-certificates` — private, 10 MB limit, JPEG/PNG/WEBP/PDF only
+- [x] RLS: uploader (`owner = auth.uid()`), their department manager, and Admin can SELECT; uploader-only INSERT (path `{uid}/{filename}`); uploader + Admin UPDATE/DELETE
+- Note: SELECT policy uses `owner` column (set by Supabase on upload) to avoid column-name ambiguity in the manager subquery; INSERT/UPDATE/DELETE use path-based check via `storage.foldername(name)[1]`
 
 ### Notes
 

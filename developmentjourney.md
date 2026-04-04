@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-04-04
+> **Last Updated:** 2026-04-04 (Phase 8 complete)
 
 ---
 
@@ -19,7 +19,7 @@
 | 5 | Balance & Entitlement Logic | ✅ Done |
 | 6 | UC002 — Employee Dashboard | ✅ Done |
 | 7 | UC003 — Leave Application | ✅ Done |
-| 8 | UC004 — Team Calendar | ⬜ Not Started |
+| 8 | UC004 — Team Calendar | ✅ Done |
 | 9 | UC005 — Approvals Dashboard | ⬜ Not Started |
 | 10 | UC007 — Notifications | ⬜ Not Started |
 | 11 | UC008 — Who's Out Today | ⬜ Not Started |
@@ -352,18 +352,30 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Screen:** UI-006 (Department Calendar)
 
-### Files to Create
+### Files Created
 
-- [ ] `app/(app)/calendar/page.tsx`
-- [ ] `components/calendar/TeamCalendar.tsx`
-  - Monthly grid view
-  - Green bars = Approved leaves (employee names + dates)
-  - Gray blocks = Public holidays
-  - Blue = Own Pending/Approved leaves
-  - **Employees:** see names and dates only — NOT leave type or reason
-  - **Managers:** also see leave type
-  - Month navigation (prev/next)
-  - Department filter
+- [x] `lib/actions/calendar.ts`
+  - `getTeamCalendarData(year, month, departmentId?)` — fetches Approved/Pending leaves + public holidays for the month using service-role client (bypasses RLS for team visibility); filters by department at application layer
+  - `getDepartments()` — fetches all departments for Admin filter dropdown
+- [x] `app/(app)/calendar/page.tsx` — server component; resolves user role + dept; fetches initial calendar data and dept list; passes to client component
+- [x] `components/calendar/TeamCalendar.tsx`
+  - Monthly grid view (Mon–Sun layout)
+  - Emerald bars = Approved team leaves
+  - Amber dashed bars = Pending team leaves
+  - Blue bars = Own leaves (any status)
+  - Orange cells = Public holidays
+  - Weekend cells tinted gray
+  - **Employees:** see name + dates only — leave type hidden
+  - **Managers / Admin:** also see leave type name in bars
+  - Month navigation with loading spinner
+  - Department filter dropdown (Admin only; Employees/Managers locked to own dept)
+  - Legend strip for color coding
+  - Tooltip on hover with full details (role-appropriate)
+
+### Notes
+
+- Service-role client used in `getTeamCalendarData` so Employees can see their department's calendar (RLS for `leave_requests` only allows SELECT own — bypassed here intentionally; field-level restriction is applied in the component)
+- Month navigation uses `useTransition` + server action — no full page reload; spinner shown during fetch
 
 ---
 

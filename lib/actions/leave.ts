@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { getKLToday, getLeaveYear, countCalendarDays, subtractWorkingDays } from '@/lib/utils/dates'
+import { getKLToday, getLeaveYear, subtractWorkingDays } from '@/lib/utils/dates'
 import { getWorkingDaysBetween } from '@/lib/utils/working-days'
 import { resolveApprover } from '@/lib/utils/routing'
 import { sendNotification } from '@/lib/actions/notifications'
@@ -184,20 +184,20 @@ export async function cancelApprovedLeave(requestId: string): Promise<ActionResu
     const leaveYearStartMonth = settings?.leave_year_start_month ?? 1
 
     if (request.is_cross_year) {
-      // Proportional split by calendar days
+      // Use actual working days per year segment (mirrors applyForLeave split logic)
       const startYear = getLeaveYear(request.start_date, leaveYearStartMonth)
       const endYear = getLeaveYear(request.end_date, leaveYearStartMonth)
 
-      const yearEndDay = leaveYearStartMonth === 1
-        ? `${startYear}-12-31`
-        : `${startYear + 1}-${String(leaveYearStartMonth - 1).padStart(2, '0')}-${new Date(startYear + 1, leaveYearStartMonth - 1, 0).getDate()}`
+      const yearEndDay   = getLeaveYearEndDate(startYear, leaveYearStartMonth)
+      const yearStartDay = getLeaveYearStartDate(endYear, leaveYearStartMonth)
 
-      const totalCal = countCalendarDays(request.start_date, request.end_date)
-      const firstYearCal = countCalendarDays(request.start_date, yearEndDay)
-      const ratio = firstYearCal / totalCal
-      // Round to nearest 0.5 to preserve half-day precision
-      const firstYearDays = Math.round(request.duration_days * ratio * 2) / 2
-      const secondYearDays = request.duration_days - firstYearDays
+      const { data: userData } = await supabase.from('users').select('department_id').eq('id', request.user_id).single()
+      const deptId = userData?.department_id ?? undefined
+
+      const [{ workingDays: firstYearDays }, { workingDays: secondYearDays }] = await Promise.all([
+        getWorkingDaysBetween(request.start_date, yearEndDay,   deptId),
+        getWorkingDaysBetween(yearStartDay,        request.end_date, deptId),
+      ])
 
       const [{ data: b1 }, { data: b2 }] = await Promise.all([
         serviceClient.from('leave_balances').select('id, used').eq('user_id', request.user_id).eq('leave_type_id', request.leave_type_id).eq('year', startYear).single(),

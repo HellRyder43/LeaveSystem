@@ -162,9 +162,10 @@ function HistoryItem({ type, date, days, status }: any) {
     Approved: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', icon: Check },
     Pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', icon: Clock },
     Rejected: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', icon: X },
+    Cancelled: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-500 dark:text-slate-400', icon: X },
   };
-  
-  const config = statusConfig[status as keyof typeof statusConfig];
+
+  const config = statusConfig[status as keyof typeof statusConfig] ?? statusConfig.Cancelled;
   const StatusIcon = config.icon;
 
   return (

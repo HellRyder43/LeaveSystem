@@ -74,11 +74,11 @@ export function BalanceCard({ balance, colorIndex = 0 }: BalanceCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-tight pr-2">
-          {balance.leave_type.name}
+          {balance.leave_type?.name ?? 'Unknown'}
         </p>
         <div className={`w-8 h-8 shrink-0 rounded-xl ${color.bg} flex items-center justify-center`}>
           <span className={`text-xs font-black ${color.icon}`}>
-            {balance.leave_type.name.charAt(0)}
+            {(balance.leave_type?.name ?? '?').charAt(0)}
           </span>
         </div>
       </div>

@@ -597,14 +597,14 @@ export function RequestLeaveForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-semibold">Covering Employee</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={(v) => field.onChange(v === 'none' ? '' : v)} value={field.value || 'none'}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a colleague (optional)" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {coveringEmployees.map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
                         {emp.full_name}

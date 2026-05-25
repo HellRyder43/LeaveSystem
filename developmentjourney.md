@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-05-26 (Phase 10 complete)
+> **Last Updated:** 2026-05-26 (Phase 11 complete)
 
 ---
 
@@ -22,7 +22,7 @@
 | 8 | UC004 — Team Calendar | ✅ Done |
 | 9 | UC005 — Approvals Dashboard | ✅ Done |
 | 10 | UC007 — Notifications | ✅ Done |
-| 11 | UC008 — Who's Out Today | ⬜ Not Started |
+| 11 | UC008 — Who's Out Today | ✅ Done |
 | 12 | UC006 — Admin Configuration | ⬜ Not Started |
 | 13 | Cron Jobs (Edge Functions) | ⬜ Not Started |
 | 14 | Error Boundaries & Polish | ⬜ Not Started |
@@ -436,16 +436,21 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Screen:** UI-016 (Who's Out Today Page + Dashboard Widget)
 
-### Files to Create
+### Files Created/Modified
 
-- [ ] `app/(app)/whos-out/page.tsx`
-  - Full-page view: all employees on approved leave today, grouped by department
-  - **Employees:** see name + dates only
-  - **Managers + Admin:** also see leave type and return date
-  - Department filter
-- [ ] `components/dashboard/WhoIsOutWidget.tsx` — condensed widget (department colleagues only) for Employee Dashboard
-- [ ] `lib/actions/reports.ts`
-  - `getWhoIsOutToday()` → `status = 'Approved' AND start_date <= KL_today AND end_date >= KL_today`
+- [x] `lib/actions/reports.ts`
+  - Fixed `getWhoIsOutToday()` to use service-role client (Employees were previously limited by RLS to own requests only — now sees company-wide)
+  - Added auth guard (regular client) before using service client
+  - Extended `WhoIsOutEntry` with `department_name` via nested join
+- [x] `app/(app)/whos-out/page.tsx`
+  - Server component; fetches all entries + departments in parallel
+  - Passes `userRole`, `userDepartmentId`, entries, departments to client component
+- [x] `components/whos-out/WhosOutPage.tsx`
+  - Department filter dropdown (Manager/Admin only; Employees locked to own dept, no filter shown)
+  - Entries grouped by department name, sorted alphabetically
+  - Role-aware display: Employees see name + dates only; Managers/Admin see leave type badge + return date
+  - Empty state: "Everyone's in today! 🌟"
+  - Responsive: return date hidden on mobile (sm:block)
 
 ---
 

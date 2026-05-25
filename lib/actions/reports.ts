@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getKLToday } from '@/lib/utils/dates'
 import type { ActionResult } from '@/lib/types/app'
 
@@ -16,6 +17,7 @@ export interface WhoIsOutEntry {
     id: string
     full_name: string
     department_id: string | null
+    department: { name: string } | null
   } | null
   leave_type: {
     id: string
@@ -25,12 +27,19 @@ export interface WhoIsOutEntry {
 
 /**
  * Returns all employees on approved leave today (Asia/KL date).
+ * Uses service-role client so all roles can see company-wide data;
+ * field-level restriction (leave type visibility) is enforced in the UI layer.
  * Optionally filter to a specific department.
  */
 export async function getWhoIsOutToday(
   departmentId?: string | null
 ): Promise<ActionResult<WhoIsOutEntry[]>> {
-  const supabase = await createClient()
+  // Auth guard — verify caller is authenticated before using service client
+  const authClient = await createClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user) return { success: false, error: 'Unauthorised' }
+
+  const supabase = createServiceClient()
   const today = getKLToday()
 
   const { data, error } = await supabase
@@ -41,7 +50,12 @@ export async function getWhoIsOutToday(
       start_date,
       end_date,
       duration_modifier,
-      user:users!leave_requests_user_id_fkey (id, full_name, department_id),
+      user:users!leave_requests_user_id_fkey (
+        id,
+        full_name,
+        department_id,
+        department:departments!users_department_id_fkey (name)
+      ),
       leave_type:leave_type_configs!leave_requests_leave_type_id_fkey (id, name)
     `)
     .eq('status', 'Approved')

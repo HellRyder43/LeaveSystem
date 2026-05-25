@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
-import type { NotificationType, ActionResult } from '@/lib/types/app'
+import type { NotificationType, ActionResult, Notification } from '@/lib/types/app'
 
 // ─── Templates ───────────────────────────────────────────────────────────────
 
@@ -67,6 +67,43 @@ export async function sendNotification(
     })
   } catch (err) {
     console.error('[sendNotification] Failed to send notification:', err)
+  }
+}
+
+/**
+ * Fetch recent notifications + unread count for a user.
+ * Used by the bell dropdown (limit 10) and the full notifications page (limit 100).
+ */
+export async function getNotificationsPreview(
+  userId: string,
+  limit = 10
+): Promise<ActionResult<{ notifications: Notification[]; unreadCount: number }>> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.id !== userId) return { success: false, error: 'Not authenticated.' }
+
+  const [notifResult, countResult] = await Promise.all([
+    supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false),
+  ])
+
+  if (notifResult.error) return { success: false, error: notifResult.error.message }
+
+  return {
+    success: true,
+    data: {
+      notifications: notifResult.data ?? [],
+      unreadCount: countResult.count ?? 0,
+    },
   }
 }
 

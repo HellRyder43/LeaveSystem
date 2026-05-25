@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-04-04 (Phase 9 complete)
+> **Last Updated:** 2026-05-26 (Phase 10 complete)
 
 ---
 
@@ -21,7 +21,7 @@
 | 7 | UC003 — Leave Application | ✅ Done |
 | 8 | UC004 — Team Calendar | ✅ Done |
 | 9 | UC005 — Approvals Dashboard | ✅ Done |
-| 10 | UC007 — Notifications | ⬜ Not Started |
+| 10 | UC007 — Notifications | ✅ Done |
 | 11 | UC008 — Who's Out Today | ⬜ Not Started |
 | 12 | UC006 — Admin Configuration | ⬜ Not Started |
 | 13 | Cron Jobs (Edge Functions) | ⬜ Not Started |
@@ -415,15 +415,13 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 **Screen:** UI-015 (Notification Centre)
 
-### Files to Create
+### Files Created
 
-- [ ] `app/(app)/notifications/page.tsx` — full notification history page
-- [ ] `components/notifications/NotificationBell.tsx` — bell icon in Navbar with unread count badge
-- [ ] `components/notifications/NotificationPanel.tsx` — dropdown: recent notifications, read/unread state, "Mark all read" action
-- [ ] `lib/actions/notifications.ts`
-  - `sendNotification(userId, type, relatedRequestId?)` — INSERT to notifications; **non-blocking** (never fails the parent action)
-  - `markNotificationRead(notificationId)`
-  - `markAllNotificationsRead(userId)`
+- [x] `lib/actions/notifications.ts` — added `getNotificationsPreview(userId, limit?)` returning recent notifications + unread count
+- [x] `components/notifications/NotificationItem.tsx` — shared item renderer (icon per type, unread dot, relative timestamp, body text)
+- [x] `components/notifications/NotificationBell.tsx` — self-contained client component; BellRing icon + rose badge; DropdownMenu with 5 recent items; optimistic mark-all-read on open
+- [x] `components/Navbar.tsx` — replaced static bell placeholder with `<NotificationBell />`
+- [x] `app/(app)/notifications/page.tsx` — full history page; notifications grouped Today / Yesterday / Earlier; "Mark all read" form action; empty state
 
 ### Notification Types by Role
 | Role | Types Received |

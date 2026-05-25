@@ -1,9 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Bell, Menu, Sun } from 'lucide-react'
+import { Menu, Sun } from 'lucide-react'
 import { useSession } from '@/components/providers/SessionProvider'
 import { ThemeToggle } from './ThemeToggle'
+import { NotificationBell } from './notifications/NotificationBell'
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard':               'Dashboard',
@@ -66,13 +67,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       <div className="flex items-center gap-1.5">
         <ThemeToggle />
 
-        {/* Notification bell — badge added in Phase 10 */}
-        <button
-          aria-label="Notifications"
-          className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        >
-          <Bell className="w-5 h-5" />
-        </button>
+        <NotificationBell />
 
         {/* User chip — desktop only (mobile: shown in sidebar) */}
         <div className="hidden sm:flex items-center gap-2.5 pl-3 ml-1 border-l border-slate-200 dark:border-slate-700">

@@ -6,13 +6,6 @@ import { getKLToday, getLeaveYear } from '@/lib/utils/dates'
 import type { ActionResult, EffectiveLeaveBalance } from '@/lib/types/app'
 import type { Json } from '@/lib/types/database'
 
-// ─── Entitlement tiers (default values — overridden by system_settings if extended) ─────
-const ENTITLEMENT_TIERS = [
-  { minYears: 5,  days: 22 },
-  { minYears: 2,  days: 18 },
-  { minYears: 0,  days: 16 },
-] as const
-
 /**
  * Calculate service length in completed years from join_date to today (KL timezone).
  */
@@ -27,14 +20,23 @@ function getServiceYears(joinDate: string): number {
 }
 
 /**
- * Get the annual leave entitlement for a user based on service length.
+ * Fetch entitlement tiers from system_settings; falls back to hardcoded defaults if unavailable.
  */
-function getEntitlementDays(joinDate: string): number {
+async function getEntitlementDays(joinDate: string): Promise<number> {
+  const serviceClient = createServiceClient()
+  const { data: settings } = await serviceClient
+    .from('system_settings')
+    .select('entitlement_tier_lt2, entitlement_tier_2to5, entitlement_tier_gt5')
+    .single()
+
+  const lt2  = settings?.entitlement_tier_lt2  ?? 16
+  const to5  = settings?.entitlement_tier_2to5 ?? 18
+  const gt5  = settings?.entitlement_tier_gt5  ?? 22
+
   const serviceYears = getServiceYears(joinDate)
-  for (const tier of ENTITLEMENT_TIERS) {
-    if (serviceYears >= tier.minYears) return tier.days
-  }
-  return 16
+  if (serviceYears >= 5) return gt5
+  if (serviceYears >= 2) return to5
+  return lt2
 }
 
 /**
@@ -183,14 +185,16 @@ export async function prorateNewHireBalance(userId: string): Promise<ActionResul
   let remainingMonths = (ey - jy) * 12 + (em - jm) + 1
   remainingMonths = Math.max(0, Math.min(12, remainingMonths))
 
+  // Fetch entitlement days once (async, reads from system_settings)
+  const annualEntitlement = await getEntitlementDays(joinDate)
+
   // Build balance inserts
   const inserts = leaveTypes.map((lt) => {
     let allocated: number
 
     if (lt.name === 'Annual' || lt.name === 'Annual Leave') {
-      // Prorate annual leave
-      const entitlement = getEntitlementDays(joinDate)
-      allocated = Math.floor((remainingMonths / 12) * entitlement)
+      // Prorate annual leave (entitlement fetched below, synchronously resolved)
+      allocated = Math.floor((remainingMonths / 12) * annualEntitlement)
       allocated = Math.max(1, allocated) // Minimum 1 day floor
     } else {
       // All other leave types: full quota regardless of join date
@@ -249,7 +253,7 @@ export async function recalculateEntitlement(userId: string): Promise<ActionResu
   const currentYear = getLeaveYear(today, leaveYearStartMonth)
   const nextYear = currentYear + 1
 
-  const entitlementDays = getEntitlementDays(user.join_date)
+  const entitlementDays = await getEntitlementDays(user.join_date)
 
   // Fetch annual leave type
   const { data: annualLeaveType } = await supabase

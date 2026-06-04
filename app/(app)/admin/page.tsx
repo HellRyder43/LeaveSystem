@@ -1,7 +1,21 @@
-import { UserCog, Settings, Calendar, FileText, BarChart2, ClipboardList } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { UserCog, Settings, Calendar, FileText, BarChart2, ClipboardList, Sliders } from 'lucide-react'
 import Link from 'next/link'
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'Admin') redirect('/dashboard')
+
   const sections = [
     {
       label: 'Manage Employees',
@@ -57,6 +71,15 @@ export default function AdminDashboardPage() {
       bgDark: 'dark:bg-slate-800/40',
       iconColor: 'text-slate-600 dark:text-slate-400',
     },
+    {
+      label: 'Balance Adjustment',
+      desc: 'Manually adjust any employee leave balance',
+      href: '/admin/balance-adjustment',
+      icon: Sliders,
+      bgLight: 'bg-indigo-50',
+      bgDark: 'dark:bg-indigo-900/20',
+      iconColor: 'text-indigo-600 dark:text-indigo-400',
+    },
   ]
 
   return (
@@ -90,14 +113,6 @@ export default function AdminDashboardPage() {
             </div>
           </Link>
         ))}
-      </div>
-
-      {/* Coming soon notice */}
-      <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 px-6 py-10 text-center">
-        <p className="text-sm font-semibold text-slate-400 dark:text-slate-500">
-          Full admin configuration and reports are coming in
-          <span className="text-purple-600 dark:text-purple-400"> Phase 12 — UC006 Admin Configuration</span>.
-        </p>
       </div>
     </div>
   )

@@ -23,7 +23,7 @@
 | 9 | UC005 — Approvals Dashboard | ✅ Done |
 | 10 | UC007 — Notifications | ✅ Done |
 | 11 | UC008 — Who's Out Today | ✅ Done |
-| 12 | UC006 — Admin Configuration | ⬜ Not Started |
+| 12 | UC006 — Admin Configuration | ✅ Done |
 | 13 | Cron Jobs (Edge Functions) | ⬜ Not Started |
 | 14 | Error Boundaries & Polish | ⬜ Not Started |
 | 15 | Visual QA & Deployment | ⬜ Not Started |
@@ -454,74 +454,73 @@ The project was scaffolded with a frontend-only prototype. These files exist but
 
 ---
 
-## Phase 12 — UC006: Admin Configuration
+## Phase 12 — UC006: Admin Configuration ✅
 
-**Screens:** UI-008 to UI-014
+**Screens:** UI-008 to UI-014  
+**Completed:** 2026-06-04
 
 ### 12.1 Employee Management (UI-011)
 
-- [ ] `app/(app)/admin/employees/page.tsx`
-- [ ] `components/admin/EmployeeTable.tsx` — list with search, department filter, deactivate/transfer actions
-- [ ] `components/admin/AddEmployeeDialog.tsx` — name, email, department, role, join date
-- [ ] `components/admin/TransferDialog.tsx` — change department
-- [ ] `lib/actions/admin.ts`
+- [x] `app/(app)/admin/employees/page.tsx`
+- [x] `components/admin/EmployeeTable.tsx` — list with search, department filter, deactivate/transfer actions
+- [x] `components/admin/AddEmployeeDialog.tsx` — name, email, department, role, join date
+- [x] `components/admin/TransferDialog.tsx` — change department
+- [x] `lib/actions/admin.ts`
   - `createEmployee(data)` → creates auth user + public.users row + calls `prorateNewHireBalance()`
   - `deactivateEmployee(userId)` → blocked if sole manager with no `acting_manager_id`
   - `transferEmployeeDepartment(userId, newDepartmentId)`
 
 ### 12.2 Leave Type Management (UI-009)
 
-- [ ] `app/(app)/admin/leave-types/page.tsx`
-- [ ] `components/admin/LeaveTypeTable.tsx`
-- [ ] `components/admin/LeaveTypeDialog.tsx` — full field form matching `leave_type_configs` schema
-- [ ] `lib/actions/admin.ts` additions
+- [x] `app/(app)/admin/leave-types/page.tsx`
+- [x] `components/admin/LeaveTypeTable.tsx`
+- [x] `components/admin/LeaveTypeDialog.tsx` — full field form matching `leave_type_configs` schema
+- [x] `lib/actions/admin.ts` additions
   - `createLeaveType(data)`
   - `updateLeaveType(id, data)`
   - (soft delete via `is_active = false`)
 
 ### 12.3 Holiday Management (UI-008)
 
-- [ ] `app/(app)/admin/holidays/page.tsx`
-- [ ] `components/admin/HolidayTable.tsx`
-- [ ] `components/admin/AddHolidayDialog.tsx` — name, date, global or department-specific
-- [ ] `components/admin/BulkImportHolidaysDialog.tsx` — CSV upload
-- [ ] `lib/actions/admin.ts` additions
+- [x] `app/(app)/admin/holidays/page.tsx`
+- [x] `components/admin/HolidayTable.tsx`
+- [x] `components/admin/AddHolidayDialog.tsx` — name, date, global or department-specific
+- [x] `components/admin/BulkImportDialog.tsx` — CSV paste and batch insert
+- [x] `lib/actions/admin.ts` additions
   - `addPublicHoliday(data)`
   - `deletePublicHoliday(id)`
   - `bulkImportPublicHolidays(csvData)` — parse CSV, batch insert
 
 ### 12.4 Policy Settings (UI-010)
 
-- [ ] `app/(app)/admin/policies/page.tsx`
-- [ ] `components/admin/PolicySettingsForm.tsx` — entitlement tiers, SLA days, backdated window, carry-forward expiry month, encashment toggle, leave year start month
-- [ ] `lib/actions/admin.ts` additions
-  - `updateSystemSettings(data)`
+- [x] `app/(app)/admin/policies/page.tsx`
+- [x] `components/admin/PolicySettingsForm.tsx` — entitlement tiers (now DB-driven), SLA days, backdated window, carry-forward expiry month, encashment toggle, leave year start month
+- [x] `lib/actions/admin.ts` additions
+  - `updateSystemSettings(data)` — saves all fields including 3 new entitlement tier columns
+- [x] DB migration: added `entitlement_tier_lt2`, `entitlement_tier_2to5`, `entitlement_tier_gt5` to `system_settings`
+- [x] `lib/actions/balance.ts` updated to read entitlement tiers from DB (async)
 
 ### 12.5 Reports & Analytics (UI-012)
 
-- [ ] `app/(app)/admin/reports/page.tsx` — tabbed layout
-- [ ] `components/admin/reports/UtilizationReport.tsx`
-- [ ] `components/admin/reports/HeadcountReport.tsx`
-- [ ] `components/admin/reports/LiabilityReport.tsx` — daily rate input required
-- [ ] `components/admin/reports/MonthlyTrendChart.tsx`
-- [ ] `lib/actions/reports.ts` additions
-  - `getLeaveUtilizationReport(filters)`
+- [x] `app/(app)/admin/reports/page.tsx` — tabbed layout
+- [x] `components/admin/ReportsPage.tsx` — 4 tabs: Utilization, Headcount, Liability, Trend (bar chart)
+- [x] `lib/actions/reports.ts` additions
+  - `getLeaveUtilizationReport(year, departmentId?, leaveTypeId?)`
   - `getHeadcountOnLeaveReport(startDate, endDate)`
   - `getLeaveLiabilityReport(year, dailyRateMap)`
-  - `exportPayrollCSV(month, year)` → returns CSV string, triggers download
+  - `getLeaveTrend(year)` — monthly application counts
+  - `exportPayrollCSV(month, year)` → returns CSV string, triggers download via Blob URL
 
 ### 12.6 Audit Log (UI-013)
 
-- [ ] `app/(app)/admin/audit-log/page.tsx`
-- [ ] `components/admin/AuditLogTable.tsx` — read-only; filterable by actor, action type, date range; `ADJUST_BALANCE` prominently tagged
-- [ ] `lib/actions/audit.ts`
-  - `writeAuditLog(actorId, action, targetTable, targetId, before, after, reason?)` — service role client only
+- [x] `app/(app)/admin/audit-log/page.tsx`
+- [x] `components/admin/AuditLogTable.tsx` — read-only; filterable by actor, action type, date range; `ADJUST_BALANCE` tagged amber; paginated 50/page; expandable JSON before/after
 
 ### 12.7 Manual Balance Adjustment (UI-014)
 
-- [ ] `app/(app)/admin/balance-adjustment/page.tsx`
-- [ ] `components/admin/BalanceAdjustmentForm.tsx` — employee, leave type, year, delta (+/-), mandatory reason
-- [ ] Connected to `adjustLeaveBalance()` from Phase 5
+- [x] `app/(app)/admin/balance-adjustment/page.tsx`
+- [x] `components/admin/BalanceAdjustmentForm.tsx` — employee, leave type, year, delta (+/-), mandatory reason; live balance preview
+- [x] Connected to existing `adjustLeaveBalance()` from Phase 5
 
 ---
 

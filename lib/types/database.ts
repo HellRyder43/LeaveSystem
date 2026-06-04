@@ -417,6 +417,9 @@ export type Database = {
           backdated_leave_window_days: number
           carry_forward_expiry_month: number
           encashment_enabled: boolean
+          entitlement_tier_2to5: number
+          entitlement_tier_gt5: number
+          entitlement_tier_lt2: number
           id: string
           leave_year_start_month: number
         }
@@ -425,6 +428,9 @@ export type Database = {
           backdated_leave_window_days?: number
           carry_forward_expiry_month?: number
           encashment_enabled?: boolean
+          entitlement_tier_2to5?: number
+          entitlement_tier_gt5?: number
+          entitlement_tier_lt2?: number
           id?: string
           leave_year_start_month?: number
         }
@@ -433,6 +439,9 @@ export type Database = {
           backdated_leave_window_days?: number
           carry_forward_expiry_month?: number
           encashment_enabled?: boolean
+          entitlement_tier_2to5?: number
+          entitlement_tier_gt5?: number
+          entitlement_tier_lt2?: number
           id?: string
           leave_year_start_month?: number
         }

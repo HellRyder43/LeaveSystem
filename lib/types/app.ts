@@ -95,6 +95,9 @@ export interface SettingsFormData {
   carry_forward_expiry_month: number
   encashment_enabled: boolean
   leave_year_start_month: number
+  entitlement_tier_lt2: number
+  entitlement_tier_2to5: number
+  entitlement_tier_gt5: number
 }
 
 // ── Server action response shape ─────────────────────────────────
@@ -110,4 +113,58 @@ export interface ReportFilters {
   department_id?: string
   leave_type_id?: string
   user_id?: string
+}
+
+// ── Admin report row types ────────────────────────────────────────
+export interface UtilizationRow {
+  user_id: string
+  full_name: string
+  department_name: string
+  leave_type_id: string
+  leave_type_name: string
+  days_allocated: number
+  days_used: number
+  days_remaining: number
+}
+
+export interface HeadcountEntry {
+  user_id: string
+  full_name: string
+  leave_type_name: string
+  start_date: string
+  end_date: string
+  duration_days: number
+}
+
+export interface HeadcountRow {
+  date: string
+  employees: HeadcountEntry[]
+}
+
+export interface LiabilityRow {
+  user_id: string
+  full_name: string
+  department_name: string
+  leave_type_id: string
+  leave_type_name: string
+  unused_days: number
+  daily_rate: number
+  liability: number
+}
+
+export interface TrendDataPoint {
+  month: string
+  count: number
+}
+
+// ── Audit log types ───────────────────────────────────────────────
+export interface AuditLogEntry extends AuditLog {
+  actor_name: string | null
+}
+
+export interface AuditLogFilters {
+  actor_id?: string
+  action_type?: string
+  from_date?: string
+  to_date?: string
 }

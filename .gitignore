@@ -15,3 +15,7 @@ tsconfig.tsbuildinfo
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Playwright test artifacts
+test-results/
+playwright-report/

@@ -3,7 +3,7 @@
 > **Project:** Leave Management System
 > **Stack:** Next.js 15 (App Router) · Tailwind CSS 4 · shadcn/ui · Supabase (PostgreSQL + Auth) · Vercel
 > **Timezone:** All business logic uses `Asia/Kuala_Lumpur` (UTC+8)
-> **Last Updated:** 2026-05-26 (Phase 11 complete)
+> **Last Updated:** 2026-06-04 (Phase 14 complete)
 
 ---
 
@@ -25,7 +25,7 @@
 | 11 | UC008 — Who's Out Today | ✅ Done |
 | 12 | UC006 — Admin Configuration | ✅ Done |
 | 13 | Cron Jobs (Edge Functions) | ⬜ Not Started |
-| 14 | Error Boundaries & Polish | ⬜ Not Started |
+| 14 | Error Boundaries & Polish | ✅ Done |
 | 15 | Visual QA & Deployment | ⬜ Not Started |
 
 **Legend:** ✅ Done · 🔄 In Progress · ⬜ Not Started · ❌ Blocked
@@ -547,31 +547,39 @@ All times in `Asia/Kuala_Lumpur`. Use Supabase `pg_cron` or Edge Function + cron
 
 ---
 
-## Phase 14 — Error Boundaries, Loading States & Polish
+## Phase 14 — Error Boundaries, Loading States & Polish ✅
 
-**Goal:** Production-quality UX throughout.
+**Goal:** Production-quality UX throughout.  
+**Completed:** 2026-06-04
 
-### Files to Create
+### Files Created
 
-- [ ] `app/error.tsx` — global error boundary (Next.js convention)
-- [ ] `app/(app)/dashboard/loading.tsx` — skeleton loader
-- [ ] `app/(app)/leaves/loading.tsx`
-- [ ] `app/(app)/leaves/apply/loading.tsx`
-- [ ] `app/(app)/calendar/loading.tsx`
-- [ ] `app/(app)/manager/approvals/loading.tsx`
-- [ ] `app/(app)/notifications/loading.tsx`
-- [ ] `app/(app)/whos-out/loading.tsx`
-- [ ] `app/(app)/admin/*/loading.tsx` — skeleton for each admin page
-- [ ] `components/ui/skeleton-card.tsx` — reusable skeleton variants
+- [x] `app/error.tsx` — global error boundary (Next.js convention; full-page layout since it's above the app shell)
+- [x] `app/(app)/error.tsx` — app-level error boundary with "Try again" + "Go to Dashboard" actions
+- [x] `app/(app)/dashboard/loading.tsx`
+- [x] `app/(app)/leaves/loading.tsx`
+- [x] `app/(app)/leaves/apply/loading.tsx`
+- [x] `app/(app)/calendar/loading.tsx`
+- [x] `app/(app)/manager/approvals/loading.tsx`
+- [x] `app/(app)/notifications/loading.tsx`
+- [x] `app/(app)/whos-out/loading.tsx`
+- [x] `app/(app)/admin/employees/loading.tsx`
+- [x] `app/(app)/admin/leave-types/loading.tsx`
+- [x] `app/(app)/admin/holidays/loading.tsx`
+- [x] `app/(app)/admin/policies/loading.tsx`
+- [x] `app/(app)/admin/reports/loading.tsx`
+- [x] `app/(app)/admin/audit-log/loading.tsx`
+- [x] `app/(app)/admin/balance-adjustment/loading.tsx`
+- [x] `components/ui/skeleton-card.tsx` — reusable variants: `SkeletonBalanceCard`, `SkeletonTable`, `SkeletonTableRow`, `SkeletonCard`, `SkeletonApprovalCard`, `SkeletonNotificationItem`, `SkeletonPageHeader`
 
 ### Polish Checklist
-- [ ] `sonner` Toaster integrated in root layout — all success/error states use toasts
-- [ ] `AlertDialog` on: cancel approved leave, deactivate employee, bulk approve
-- [ ] All dropdowns exclude `is_active = false` employees
-- [ ] Status badges use consistent Tailwind color mapping (Emerald/Amber/Rose/Slate/Orange)
-- [ ] SLA badge color logic: `> 3 days` green, `2–3 days` amber, `< 2 days` red
-- [ ] "Manager Leave" badge in Admin approval queue
-- [ ] Covering employee conflict caution: amber non-blocking banner
+- [x] `sonner` Toaster integrated in root layout (`app/layout.tsx`) — `richColors`, `position="top-right"`
+- [x] `AlertDialog` on: cancel approved leave, deactivate employee, bulk approve (implemented in Phases 6/9/12)
+- [x] All dropdowns exclude `is_active = false` employees (enforced in all server actions since Phase 7)
+- [x] Status badges use consistent Tailwind color mapping (Emerald/Amber/Rose/Slate/Orange)
+- [x] SLA badge color logic: `> 3 days` green, `2–3 days` amber, `< 2 days` red
+- [x] "Manager Leave" badge in Admin approval queue
+- [x] Covering employee conflict caution: amber non-blocking banner
 
 ---
 

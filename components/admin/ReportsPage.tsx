@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Download, BarChart3, Users, DollarSign, TrendingUp } from 'lucide-react'
+import { Download, BarChart3, Users, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,11 +12,9 @@ import { Badge } from '@/components/ui/badge'
 import {
   getLeaveUtilizationReport,
   getHeadcountOnLeaveReport,
-  getLeaveLiabilityReport,
   getLeaveTrend,
-  exportPayrollCSV,
 } from '@/lib/actions/reports'
-import type { Department, LeaveTypeConfig, UtilizationRow, HeadcountRow, LiabilityRow, TrendDataPoint } from '@/lib/types/app'
+import type { Department, LeaveTypeConfig, UtilizationRow, HeadcountRow, TrendDataPoint } from '@/lib/types/app'
 
 interface Props {
   departments: Pick<Department, 'id' | 'name'>[]
@@ -52,22 +50,30 @@ function UtilizationTab({ departments, leaveTypes }: Props) {
   }
 
   function handleExport() {
-    const month = new Date().getMonth() + 1
-    startTransition(async () => {
-      const result = await exportPayrollCSV(month, parseInt(year))
-      if (result.success && result.data) {
-        const blob = new Blob([result.data.csvContent], { type: 'text/csv' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `payroll_${year}_${String(month).padStart(2, '0')}.csv`
-        a.click()
-        URL.revokeObjectURL(url)
-        toast.success('CSV downloaded.')
-      } else {
-        toast.error(result.error ?? 'Failed to export CSV.')
-      }
-    })
+    if (!ran || rows.length === 0) {
+      toast.error('Run the report first before exporting.')
+      return
+    }
+    const header = 'Employee,Department,Leave Type,Allocated,Used,Remaining'
+    const lines = rows.map((r) =>
+      [
+        `"${r.full_name}"`,
+        `"${r.department_name}"`,
+        `"${r.leave_type_name}"`,
+        r.days_allocated,
+        r.days_used,
+        r.days_remaining,
+      ].join(',')
+    )
+    const csvContent = [header, ...lines].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `utilization_${year}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('CSV downloaded.')
   }
 
   return (
@@ -230,124 +236,6 @@ function HeadcountTab() {
   )
 }
 
-// ─── Liability Tab ────────────────────────────────────────────────
-function LiabilityTab() {
-  const [isPending, startTransition] = useTransition()
-  const [year, setYear] = useState(String(currentYear))
-  const [defaultRate, setDefaultRate] = useState('')
-  const [rows, setRows] = useState<LiabilityRow[]>([])
-  const [ran, setRan] = useState(false)
-
-  function handleRun() {
-    const rate = parseFloat(defaultRate) || 0
-    startTransition(async () => {
-      const result = await getLeaveLiabilityReport(parseInt(year), {})
-      if (result.success && result.data) {
-        // Apply default rate to all rows that don't have a rate
-        const withRate = result.data.map((r) => ({
-          ...r,
-          daily_rate: rate,
-          liability: r.unused_days * rate,
-        }))
-        setRows(withRate)
-        setRan(true)
-      } else {
-        toast.error(result.error ?? 'Failed to run report.')
-      }
-    })
-  }
-
-  const totalLiability = rows.reduce((sum, r) => sum + r.liability, 0)
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-xs">Year</Label>
-          <Select value={year} onValueChange={setYear}>
-            <SelectTrigger className="h-8 w-28 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((y) => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Daily Rate (MYR)</Label>
-          <Input
-            type="number"
-            min={0}
-            step={0.01}
-            placeholder="e.g. 250.00"
-            value={defaultRate}
-            onChange={(e) => setDefaultRate(e.target.value)}
-            className="h-8 text-xs w-36"
-          />
-        </div>
-        <Button size="sm" onClick={handleRun} disabled={isPending} className="bg-rose-600 hover:bg-rose-700 text-white h-8">
-          {isPending ? 'Running…' : 'Run Report'}
-        </Button>
-      </div>
-
-      {ran && (
-        <>
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            {rows.length === 0 ? (
-              <div className="py-12 text-center text-sm text-slate-400">No data found.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Employee</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Department</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Leave Type</th>
-                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Unused Days</th>
-                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Daily Rate</th>
-                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Liability (MYR)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r, i) => (
-                      <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                        <td className="px-4 py-2.5 font-medium text-slate-800 dark:text-slate-200">{r.full_name}</td>
-                        <td className="px-4 py-2.5 text-slate-500 text-xs hidden md:table-cell">{r.department_name}</td>
-                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300 text-xs">{r.leave_type_name}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-600 dark:text-slate-300">{r.unused_days}</td>
-                        <td className="px-4 py-2.5 text-right text-slate-500 text-xs">
-                          {r.daily_rate > 0 ? `MYR ${r.daily_rate.toFixed(2)}` : '—'}
-                        </td>
-                        <td className="px-4 py-2.5 text-right font-semibold text-slate-800 dark:text-slate-200">
-                          {r.daily_rate > 0 ? `MYR ${r.liability.toFixed(2)}` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  {totalLiability > 0 && (
-                    <tfoot>
-                      <tr className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                        <td colSpan={5} className="px-4 py-2.5 text-right text-sm font-bold text-slate-700 dark:text-slate-300">
-                          Total Liability
-                        </td>
-                        <td className="px-4 py-2.5 text-right font-black text-slate-800 dark:text-slate-100">
-                          MYR {totalLiability.toFixed(2)}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
 // ─── Trend Tab ────────────────────────────────────────────────────
 function TrendTab() {
   const [isPending, startTransition] = useTransition()
@@ -420,7 +308,7 @@ export function ReportsPage({ departments, leaveTypes }: Props) {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="utilization">
-        <TabsList className="grid grid-cols-4 w-full max-w-xl">
+        <TabsList className="grid grid-cols-3 w-full max-w-lg">
           <TabsTrigger value="utilization" className="gap-1.5 text-xs">
             <BarChart3 className="w-3.5 h-3.5" />
             Utilization
@@ -428,10 +316,6 @@ export function ReportsPage({ departments, leaveTypes }: Props) {
           <TabsTrigger value="headcount" className="gap-1.5 text-xs">
             <Users className="w-3.5 h-3.5" />
             Headcount
-          </TabsTrigger>
-          <TabsTrigger value="liability" className="gap-1.5 text-xs">
-            <DollarSign className="w-3.5 h-3.5" />
-            Liability
           </TabsTrigger>
           <TabsTrigger value="trend" className="gap-1.5 text-xs">
             <TrendingUp className="w-3.5 h-3.5" />
@@ -443,9 +327,6 @@ export function ReportsPage({ departments, leaveTypes }: Props) {
         </TabsContent>
         <TabsContent value="headcount" className="mt-4">
           <HeadcountTab />
-        </TabsContent>
-        <TabsContent value="liability" className="mt-4">
-          <LiabilityTab />
         </TabsContent>
         <TabsContent value="trend" className="mt-4">
           <TrendTab />

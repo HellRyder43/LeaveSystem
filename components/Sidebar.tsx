@@ -118,7 +118,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex items-center gap-2.5">
           <Image src="/images/scs_logo.png" alt="SCS Logo" width={36} height={36} className="object-contain" />
           <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 tracking-tight">
-            SCS
+            LMS
           </span>
         </div>
         <button

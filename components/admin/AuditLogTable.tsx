@@ -49,8 +49,8 @@ export function AuditLogTable({ initialEntries, initialTotal, actorOptions, acti
   const [page, setPage] = useState(1)
   const [isPending, startTransition] = useTransition()
 
-  const [filterActorId, setFilterActorId] = useState('')
-  const [filterAction, setFilterAction] = useState('')
+  const [filterActorId, setFilterActorId] = useState('all')
+  const [filterAction, setFilterAction] = useState('all')
   const [filterFrom, setFilterFrom] = useState('')
   const [filterTo, setFilterTo] = useState('')
 
@@ -58,8 +58,8 @@ export function AuditLogTable({ initialEntries, initialTotal, actorOptions, acti
 
   function applyFilters(newPage = 1) {
     const filters: AuditLogFilters = {
-      actor_id: filterActorId || undefined,
-      action_type: filterAction || undefined,
+      actor_id: filterActorId === 'all' ? undefined : filterActorId,
+      action_type: filterAction === 'all' ? undefined : filterAction,
       from_date: filterFrom || undefined,
       to_date: filterTo || undefined,
     }
@@ -107,7 +107,7 @@ export function AuditLogTable({ initialEntries, initialTotal, actorOptions, acti
                 <SelectValue placeholder="All actors" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All actors</SelectItem>
+                <SelectItem value="all">All actors</SelectItem>
                 {actorOptions.map((a) => (
                   <SelectItem key={a.id} value={a.id}>{a.full_name}</SelectItem>
                 ))}
@@ -121,7 +121,7 @@ export function AuditLogTable({ initialEntries, initialTotal, actorOptions, acti
                 <SelectValue placeholder="All actions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All actions</SelectItem>
+                <SelectItem value="all">All actions</SelectItem>
                 {actionOptions.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
                 ))}
@@ -155,8 +155,8 @@ export function AuditLogTable({ initialEntries, initialTotal, actorOptions, acti
             size="sm"
             variant="outline"
             onClick={() => {
-              setFilterActorId('')
-              setFilterAction('')
+              setFilterActorId('all')
+              setFilterAction('all')
               setFilterFrom('')
               setFilterTo('')
             }}

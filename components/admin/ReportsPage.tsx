@@ -30,8 +30,8 @@ const yearOptions = [currentYear - 2, currentYear - 1, currentYear]
 function UtilizationTab({ departments, leaveTypes }: Props) {
   const [isPending, startTransition] = useTransition()
   const [year, setYear] = useState(String(currentYear))
-  const [deptId, setDeptId] = useState('')
-  const [leaveTypeId, setLeaveTypeId] = useState('')
+  const [deptId, setDeptId] = useState('all')
+  const [leaveTypeId, setLeaveTypeId] = useState('all')
   const [rows, setRows] = useState<UtilizationRow[]>([])
   const [ran, setRan] = useState(false)
 
@@ -39,8 +39,8 @@ function UtilizationTab({ departments, leaveTypes }: Props) {
     startTransition(async () => {
       const result = await getLeaveUtilizationReport(
         parseInt(year),
-        deptId || undefined,
-        leaveTypeId || undefined,
+        deptId === 'all' ? undefined : deptId,
+        leaveTypeId === 'all' ? undefined : leaveTypeId,
       )
       if (result.success) {
         setRows(result.data ?? [])
@@ -93,7 +93,7 @@ function UtilizationTab({ departments, leaveTypes }: Props) {
               <SelectValue placeholder="All departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All departments</SelectItem>
+              <SelectItem value="all">All departments</SelectItem>
               {departments.map((d) => (
                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
@@ -107,7 +107,7 @@ function UtilizationTab({ departments, leaveTypes }: Props) {
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types</SelectItem>
+              <SelectItem value="all">All types</SelectItem>
               {leaveTypes.map((lt) => (
                 <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
               ))}

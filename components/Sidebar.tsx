@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Sun className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 tracking-tight">
-            Oasis
+            SCS
           </span>
         </div>
         <button

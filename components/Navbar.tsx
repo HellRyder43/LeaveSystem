@@ -52,7 +52,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           <Sun className="w-4 h-4 text-white" />
         </div>
         <span className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-          Oasis
+          SCS
         </span>
       </div>
 

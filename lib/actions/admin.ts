@@ -84,19 +84,20 @@ export async function getEmployees(filters?: {
   return { success: true, data: filtered as (User & { department_name: string | null })[] }
 }
 
+const TEMP_PASSWORD = 'Welcome@1234'
+
 export async function createEmployee(
   actorId: string,
   data: NewEmployeeFormData
-): Promise<ActionResult<User>> {
+): Promise<ActionResult<User & { temp_password: string }>> {
   const auth = await requireAdmin()
   if ('error' in auth) return { success: false, error: auth.error }
 
   const serviceClient = createServiceClient()
 
-  // Create Supabase Auth user with auto-confirmed email and random temp password
   const { data: authResult, error: authError } = await serviceClient.auth.admin.createUser({
     email: data.email,
-    password: crypto.randomUUID(),
+    password: TEMP_PASSWORD,
     email_confirm: true,
   })
 
@@ -134,20 +135,10 @@ export async function createEmployee(
     // log but don't fail
   }
 
-  // Send password reset so the new employee can set their own password
-  try {
-    await serviceClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: data.email,
-    })
-  } catch {
-    // non-blocking
-  }
-
   await writeAuditLog(auth.actorId, 'CREATE_EMPLOYEE', 'users', newUserId, {} as Json, newUser as Json)
 
   revalidatePath('/admin/employees')
-  return { success: true, data: newUser as User }
+  return { success: true, data: { ...(newUser as User), temp_password: TEMP_PASSWORD } }
 }
 
 export async function deactivateEmployee(

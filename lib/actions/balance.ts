@@ -49,66 +49,87 @@ export async function getLeaveBalance(
 ): Promise<ActionResult<EffectiveLeaveBalance[]>> {
   const supabase = await createClient()
 
-  // Fetch balances with leave type info
-  const { data: balances, error: balanceError } = await supabase
-    .from('leave_balances')
-    .select(`
-      *,
-      leave_type:leave_type_configs (
-        id,
-        name,
-        allow_half_day,
-        is_carry_forward_allowed,
-        max_carry_forward_days
-      )
-    `)
-    .eq('user_id', userId)
-    .eq('year', year)
+  // Fetch balances, all active leave types, pending requests, and settings in parallel
+  const [
+    { data: balances, error: balanceError },
+    { data: allLeaveTypes, error: ltError },
+    { data: pendingRequests, error: pendingError },
+    { data: settings },
+  ] = await Promise.all([
+    supabase
+      .from('leave_balances')
+      .select(`
+        *,
+        leave_type:leave_type_configs (
+          id,
+          name,
+          allow_half_day,
+          is_carry_forward_allowed,
+          max_carry_forward_days
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('year', year),
+    supabase
+      .from('leave_type_configs')
+      .select('id, name, allow_half_day, is_carry_forward_allowed, max_carry_forward_days')
+      .eq('is_active', true),
+    supabase
+      .from('leave_requests')
+      .select('leave_type_id, duration_days, start_date, end_date')
+      .eq('user_id', userId)
+      .eq('status', 'Pending'),
+    supabase
+      .from('system_settings')
+      .select('leave_year_start_month')
+      .single(),
+  ])
 
-  if (balanceError) {
-    return { success: false, error: balanceError.message }
-  }
-
-  if (!balances || balances.length === 0) {
-    return { success: true, data: [] }
-  }
-
-  // Fetch pending-in-flight totals for each leave type
-  const { data: pendingRequests, error: pendingError } = await supabase
-    .from('leave_requests')
-    .select('leave_type_id, duration_days, start_date, end_date')
-    .eq('user_id', userId)
-    .eq('status', 'Pending')
-
-  if (pendingError) {
-    return { success: false, error: pendingError.message }
-  }
-
-  // Get leave year start month from system settings
-  const { data: settings } = await supabase
-    .from('system_settings')
-    .select('leave_year_start_month')
-    .single()
+  if (balanceError) return { success: false, error: balanceError.message }
+  if (ltError) return { success: false, error: ltError.message }
+  if (pendingError) return { success: false, error: pendingError.message }
 
   const leaveYearStartMonth = settings?.leave_year_start_month ?? 1
 
+  // Supplement with zero-balance entries for active leave types that have no row yet.
+  // This covers leave types added after an employee was created, or new hires whose
+  // prorateNewHireBalance ran before certain leave types were activated.
+  const existingTypeIds = new Set((balances ?? []).map((b) => b.leave_type_id))
+  const syntheticBalances = (allLeaveTypes ?? [])
+    .filter((lt) => !existingTypeIds.has(lt.id))
+    .map((lt) => ({
+      id: `synthetic-${lt.id}`,
+      user_id: userId,
+      leave_type_id: lt.id,
+      year,
+      allocated: 0,
+      used: 0,
+      carried_forward: 0,
+      carried_forward_expiry: null,
+      encashed: 0,
+      leave_type: lt,
+    }))
+
+  const allBalances = [
+    ...(balances ?? []),
+    ...(syntheticBalances as typeof balances),
+  ]
+
+  if (allBalances.length === 0) {
+    return { success: true, data: [] }
+  }
+
   // For each balance, compute pending_in_flight and effective_balance
-  const enriched: EffectiveLeaveBalance[] = balances.map((balance) => {
-    // Sum pending days that fall (at least partially) in this leave year
+  const enriched: EffectiveLeaveBalance[] = allBalances.map((balance) => {
     const pending_in_flight = (pendingRequests ?? []).reduce((sum, req) => {
       if (req.leave_type_id !== balance.leave_type_id) return sum
 
-      // For cross-year requests, we need to attribute days to the correct year
       const startYear = getLeaveYear(req.start_date, leaveYearStartMonth)
       const endYear   = getLeaveYear(req.end_date,   leaveYearStartMonth)
 
       if (startYear === year && endYear === year) {
-        // Fully within this year
         return sum + (req.duration_days ?? 0)
       } else if (startYear === year) {
-        // Cross-year: only the portion in this year matters
-        // Approximation: we'll count the full duration here and let cross-year
-        // split logic in applyForLeave handle the exact split
         return sum + (req.duration_days ?? 0)
       }
       return sum
@@ -126,6 +147,22 @@ export async function getLeaveBalance(
       pending_in_flight,
       effective_balance,
     }
+  })
+
+  // Annual Leave first, Sick Leave second, remainder alphabetical
+  const PRIORITY: Record<string, number> = {
+    'annual leave': 0,
+    'annual':       0,
+    'sick leave':   1,
+    'sick':         1,
+  }
+  enriched.sort((a, b) => {
+    const aName = a.leave_type?.name?.toLowerCase() ?? ''
+    const bName = b.leave_type?.name?.toLowerCase() ?? ''
+    const ap = PRIORITY[aName] ?? 99
+    const bp = PRIORITY[bName] ?? 99
+    if (ap !== bp) return ap - bp
+    return aName.localeCompare(bName)
   })
 
   return { success: true, data: enriched }

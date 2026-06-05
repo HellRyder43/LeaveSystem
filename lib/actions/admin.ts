@@ -54,7 +54,7 @@ export async function getEmployees(filters?: {
   const serviceClient = createServiceClient()
   let query = serviceClient
     .from('users')
-    .select('*, departments(name)')
+    .select('*, departments!users_department_id_fkey(name)')
     .order('full_name')
 
   if (!filters?.include_inactive) {

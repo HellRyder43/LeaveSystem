@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTransition } from 'react'
@@ -20,7 +21,6 @@ import {
   BarChart2,
   ClipboardList,
   LogOut,
-  Sun,
   X,
 } from 'lucide-react'
 
@@ -116,9 +116,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-md shadow-purple-500/20 rotate-3">
-            <Sun className="w-5 h-5 text-white" />
-          </div>
+          <Image src="/images/scs_logo.png" alt="SCS Logo" width={36} height={36} className="object-contain" />
           <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 tracking-tight">
             SCS
           </span>

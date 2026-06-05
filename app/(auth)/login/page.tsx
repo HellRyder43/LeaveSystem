@@ -3,7 +3,8 @@
 import { Suspense, useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, CalendarDays } from 'lucide-react'
+import Image from 'next/image'
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 import { signIn } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -162,9 +163,7 @@ export default function LoginPage() {
     <div className="w-full max-w-md space-y-8">
       {/* Mobile logo (hidden on desktop where the left panel shows it) */}
       <div className="flex flex-col items-center gap-3 lg:hidden">
-        <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
-          <CalendarDays className="w-7 h-7 text-white" strokeWidth={1.5} />
-        </div>
+        <Image src="/images/scs_logo.png" alt="SCS Logo" width={56} height={56} className="object-contain" />
         <p className="text-xl font-bold text-slate-800">Leave Management System</p>
       </div>
 

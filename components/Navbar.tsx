@@ -1,7 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Menu, Sun } from 'lucide-react'
+import Image from 'next/image'
+import { Menu } from 'lucide-react'
 import { useSession } from '@/components/providers/SessionProvider'
 import { ThemeToggle } from './ThemeToggle'
 import { NotificationBell } from './notifications/NotificationBell'
@@ -48,9 +49,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
       {/* Logo — mobile only (sidebar is hidden) */}
       <div className="md:hidden flex items-center gap-2">
-        <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center rotate-3">
-          <Sun className="w-4 h-4 text-white" />
-        </div>
+        <Image src="/images/scs_logo.png" alt="SCS Logo" width={28} height={28} className="object-contain" />
         <span className="text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
           SCS
         </span>

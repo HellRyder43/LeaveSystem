@@ -340,7 +340,8 @@ CREATE POLICY "leave_requests: insert own"
 
 CREATE POLICY "leave_requests: update own pending or approved"
   ON public.leave_requests FOR UPDATE TO authenticated
-  USING (user_id = auth.uid() AND status IN ('Pending', 'Approved'));
+  USING  (user_id = auth.uid() AND status IN ('Pending', 'Approved'))
+  WITH CHECK (user_id = auth.uid() AND status = 'Cancelled');
 
 CREATE POLICY "leave_requests: manager reads department"
   ON public.leave_requests FOR SELECT TO authenticated

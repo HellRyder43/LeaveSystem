@@ -384,7 +384,7 @@ export function RequestLeaveForm({
                 }}
                 disabled={[
                   { before: earliestDate },
-                  (date: Date) => date.getUTCDay() === 0 || date.getUTCDay() === 6,
+                  (date: Date) => date.getDay() === 0 || date.getDay() === 6,
                 ]}
                 modifiers={{ holiday: holidayDates }}
                 modifiersClassNames={{
